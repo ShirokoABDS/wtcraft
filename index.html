@@ -35,7 +35,7 @@
         }
     </script>
     <style>
-        /* ========== 你提供的全局基础样式 ========== */
+        /* 全局重置 */
         * {
             margin: 0;
             padding: 0;
@@ -45,31 +45,28 @@
             transition: 0.25s;
         }
 
-        /* ========== 页面容器基础样式 ========== */
+        /* 页面主体 - 移除网格，纯背景图全屏适配 */
         body {
             overflow-x: hidden;
             min-height: 100vh;
-            /* 网格背景（你提供的核心背景） */
-            --color: #E1E1E1;
-            background-color: #F3F3F3;
-            background-image: linear-gradient(0deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%,transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%,transparent),
-            linear-gradient(90deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%,transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%,transparent);
-            background-size: 55px 55px;
             font-family: 'Microsoft Yahei', sans-serif;
             padding-top: 110px;
             position: relative;
             z-index: 0;
+            /* 背景图全屏居中固定，完美适配屏幕 */
             background: url('https://api.yppp.net/api.php') no-repeat center center fixed;
+            background-size: cover;
+            background-color: #111;
         }
 
-        /* 背景遮罩层（适配浅色模式，简化通透感） */
+        /* 背景遮罩层 */
         #bg-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-color: rgba(0, 0, 0, 0.15);
+            background-color: rgba0, 0, 0, 0.15);
             z-index: -1;
             pointer-events: none;
             opacity: 0;
@@ -80,7 +77,7 @@
             background-color: rgba(0, 0, 0, 0.65);
         }
 
-        /* ========== 模式适配 ========== */
+        /* 深浅色模式 */
         body.dark {
             color: #fff;
             --glass-bg: rgba(0, 0, 0, 0.2);
@@ -92,7 +89,7 @@
             --text-main: #3e3e3e;
         }
 
-        /* ========== 核心玻璃卡片样式（模糊提升至4px） ========== */
+        /* 主玻璃卡片 模糊4px */
         .glass {
             position: relative;
             border-radius: 20px;
@@ -106,15 +103,15 @@
                 0 4px 8px rgba(0, 0, 0, 0.15);
             background: var(--glass-bg);
             backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             scroll-margin-top: 100px;
-            /* 入场动画初始状态 */
             opacity: 0;
             transform: translateY(50px);
             transition: all 0.6s ease-out;
             overflow: hidden;
         }
 
-        /* 服务器卡片（模糊提升至4px） */
+        /* 服务器卡片 模糊4px */
         .server-card {
             position: relative;
             border-radius: 16px;
@@ -125,26 +122,28 @@
                 0 4px 8px rgba(0, 0, 0, 0.1);
             background: var(--glass-bg);
             backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             transition: all 0.3s ease;
             opacity: 0;
             transform: translateY(50px);
             overflow: hidden;
         }
 
-        /* 图册卡片（模糊提升至4px） */
+        /* 图册卡片 模糊4px */
         .gallery-item {
             border-radius: 16px;
             border: 1px double rgba(51, 51, 51, 0.08);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             background: var(--glass-bg);
             backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             transition: all 0.3s ease;
             opacity: 0;
             transform: translateY(50px);
             overflow: hidden;
         }
 
-        /* 数据卡片（模糊提升至4px） */
+        /* 数据卡片 模糊4px */
         .data-card {
             position: relative;
             border-radius: 12px;
@@ -155,9 +154,10 @@
                 0 2px 4px rgba(0, 0, 0, 0.1);
             background: var(--glass-bg);
             backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
         }
 
-        /* ========== 按钮样式（适配新风格） ========== */
+        /* 按钮样式 */
         .btn-pink {
             background: linear-gradient(135deg, #ff6b9d 0%, #ff9a9e 100%);
             border: none;
@@ -192,7 +192,7 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* ========== 状态/交互效果 ========== */
+        /* 交互效果 */
         .status-online { color: #4ade80; }
         .status-offline { color: #f87171; }
         .server-card:hover { transform: translateY(-6px); }
@@ -213,7 +213,7 @@
             transform: translateY(0) !important;
         }
 
-        /* 导航栏固定层级 */
+        /* 导航层级 */
         #nav-main {
             z-index: 50;
         }
@@ -223,7 +223,7 @@
     <!-- 背景遮罩层 -->
     <div id="bg-overlay"></div>
 
-    <!-- 顶部导航栏（固定悬浮+功能修复） -->
+    <!-- 顶部导航栏 -->
     <nav class="w-full px-8 py-4 flex items-center justify-between glass mb-10 fixed top-0 left-0 z-50" id="nav-main">
         <div class="flex items-center gap-3 flex-wrap">
             <span class="bg-pink-500 text-white px-4 py-1.5 rounded-full text-base font-bold">WTCraft | WTC</span>
@@ -240,14 +240,14 @@
 
     <!-- 主内容区 -->
     <main class="flex-1 flex flex-col items-center justify-center gap-8 px-6">
-        <!-- 打字机欢迎文字（固定高度防抖动） -->
+        <!-- 打字机欢迎文字 -->
         <div class="text-center mb-8 px-2 min-h-[4rem]">
             <h1 id="typewriter-title" class="text-5xl font-bold text-pink-500 mb-4"></h1>
         </div>
 
-        <!-- 双服务器并列布局（主服+小游戏服） -->
+        <!-- 双服务器布局 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-            <!-- 主服信息卡片 -->
+            <!-- 主服 -->
             <div class="glass w-full p-8" id="card-main-server">
                 <h3 class="text-center text-pink-400 font-bold mb-6 text-xl">主服务器</h3>
                 <div class="flex gap-3 mb-8 flex-wrap">
@@ -272,7 +272,7 @@
                 </div>
             </div>
 
-            <!-- 小游戏服信息卡片 -->
+            <!-- 小游戏服 -->
             <div class="glass w-full p-8" id="card-mini-server">
                 <h3 class="text-center text-pink-400 font-bold mb-6 text-xl">小游戏服务器</h3>
                 <div class="flex gap-3 mb-8 flex-wrap">
@@ -297,7 +297,7 @@
                 </div>
             </div>
 
-            <!-- 主服实时状态卡片 -->
+            <!-- 主服状态 -->
             <div class="glass w-full p-8" id="card-main-status">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-pink-400 font-bold flex items-center text-xl">
@@ -321,7 +321,7 @@
                 </div>
             </div>
 
-            <!-- 小游戏服实时状态卡片 -->
+            <!-- 小游戏服状态 -->
             <div class="glass w-full p-8" id="card-mini-status">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-pink-400 font-bold flex items-center text-xl">
@@ -359,7 +359,6 @@
         <section id="server-list" class="glass w-full max-w-4xl p-8 mt-6">
             <h2 class="text-center text-3xl font-bold text-pink-500 mb-8">列表</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- 纯净生存 -->
                 <div class="server-card data-card p-6" id="server-card-survival">
                     <img src="static/picture/a4VLNR.jpg" alt="纯净生存" class="w-full h-48 object-cover rounded-lg mb-4">
                     <h3 class="text-xl font-bold text-pink-400 mb-2">纯净生存 1.21.11</h3>
@@ -367,7 +366,6 @@
                     <p class="text-inherit opacity-80 mb-4">一起在干净的方块世界，慢慢建造属于自己的家园。</p>
                     <a href="https://mclists.cn/server/9277.html" target="_blank" class="btn-pink w-full">查看详情</a>
                 </div>
-                <!-- 小游戏 -->
                 <div class="server-card data-card p-6" id="server-card-minigame">
                     <img src="static/picture/a4Vj9x.jpg" alt="小游戏" class="w-full h-48 object-cover rounded-lg mb-4">
                     <h3 class="text-xl font-bold text-pink-400 mb-2">小游戏</h3>
@@ -375,7 +373,6 @@
                     <p class="text-inherit opacity-80 mb-4">稳定开服，支持随时加入，无需白名单，快来体验不一样的方块乐趣！</p>
                     <a href="https://mclists.cn/server/8875.html" target="_blank" class="btn-pink w-full">立即进入</a>
                 </div>
-                <!-- PCL下载 -->
                 <div class="server-card data-card p-6" id="server-card-java">
                     <img src="static/picture/a4VqE9.jpg" alt="JAVA下载" class="w-full h-48 object-cover rounded-lg mb-4">
                     <h3 class="text-xl font-bold text-pink-400 mb-2">PCL下载(推荐启动器)</h3>
@@ -459,7 +456,7 @@
             }, 3500);
         });
 
-        // 滚动函数
+        // 滚动
         function scrollToSection(sectionId) {
             const section = document.getElementById(sectionId);
             const navHeight = 100;
@@ -470,7 +467,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // 复制功能
+        // 复制
         const copyBtn = document.getElementById('copyBtn');
         copyBtn.addEventListener('click', () => {
             const address = "zdy.wtstu.us.ci";
@@ -499,7 +496,7 @@
             });
         });
 
-        // 打字机效果
+        // 打字机
         const titleTexts = [
             "欢迎来到 WTCraft 服务器",
             "方块世界的冒险",
@@ -572,7 +569,7 @@
             }
         });
 
-        // 服务器状态查询
+        // 服务器状态
         async function updateServerStatus() {
             try {
                 const response = await fetch('https://www.cunyuapi.top/server?address=zdy.wtstu.us.ci:50240');
@@ -593,7 +590,6 @@
                 document.getElementById('statusOnline').textContent = `${onlinePlayers}/${maxPlayers}`;
                 if (!isOnline) document.getElementById('serverMOTD').textContent = 'null';
             } catch (error) {
-                console.error('获取服务器状态失败:', error);
                 document.getElementById('statusBadge').className = 'px-3 py-1.5 rounded-full text-sm bg-red-400 text-white';
                 document.getElementById('statusBadge').textContent = '● 离线';
                 document.getElementById('statusVersion').textContent = '获取失败';
@@ -625,7 +621,6 @@
                 document.getElementById('statusOnline2').textContent = `${onlinePlayers}/${maxPlayers}`;
                 document.getElementById('serverMOTD2').textContent = isOnline ? motd : 'null';
             } catch (error) {
-                console.error('获取小游戏服状态失败:', error);
                 document.getElementById('statusBadge2').className = 'px-3 py-1.5 rounded-full text-sm bg-red-400 text-white';
                 document.getElementById('statusBadge2').textContent = '● 离线';
                 document.getElementById('statusVersion2').textContent = '获取失败';
