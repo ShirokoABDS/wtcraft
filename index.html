@@ -251,7 +251,7 @@
             <div class="glass w-full p-8" id="card-main-server">
                 <h3 class="text-center text-pink-400 font-bold mb-6 text-xl">主服务器</h3>
                 <div class="flex gap-3 mb-8 flex-wrap">
-                    <input type="text" value="zdy.wtstu.us.ci" readonly class="flex-1 data-card px-4 py-3 text-inherit text-lg outline-none min-w-[200px]">
+                    <input type="text" value="zdy.wtstu.us.ci:10165" readonly class="flex-1 data-card px-4 py-3 text-inherit text-lg outline-none min-w-[200px]">
                     <button id="copyBtn" class="btn-pink whitespace-nowrap">
                         <i class="fa-solid fa-copy mr-2"></i> 复制
                     </button>
@@ -470,7 +470,7 @@
         // 复制
         const copyBtn = document.getElementById('copyBtn');
         copyBtn.addEventListener('click', () => {
-            const address = "zdy.wtstu.us.ci";
+            const address = "zdy.wtstu.us.ci:10165";
             navigator.clipboard.writeText(address).then(() => {
                 copyBtn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> 已复制';
                 setTimeout(() => {
@@ -572,7 +572,7 @@
         // 服务器状态
         async function updateServerStatus() {
             try {
-                const response = await fetch('https://www.cunyuapi.top/server?address=zdy.wtstu.us.ci:50240');
+                const response = await fetch('https://www.cunyuapi.top/server?address=zdy.wtstu.us.ci:10165');
                 const data = await response.json();
                 const serverData = data.data || data;
                 const isOnline = serverData.online || false;
