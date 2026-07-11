@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>玩家档案册 · Wtcraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500&family=Roboto:wght@100;300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="shortcut icon" href="static\picture\logo.png" type="image/x-icon">
+<style>
+/* ============ Tokens (与主页同步) ============ */
+:root{
+  --bg:#EAE4D9; --bg-alt:#E0D9CC; --cream:#F3F0EB;
+  --charcoal:#1C1C1C; --earth:#2A2A2A;
+  --terracotta:#B85C3C; --forest:#3A5A40; --gold:#C9A876;
+  --accent:var(--terracotta);
+  --text:#1C1C1C;
+  --text-muted:rgba(28,28,28,.62);
+  --text-faint:rgba(28,28,28,.38);
+  --line:rgba(28,28,28,.14);
+  --line-strong:rgba(28,28,28,.32);
+  --glass-bg:rgba(243,240,235,.55);
+  --glass-border:rgba(28,28,28,.08);
+  --glass-shadow:0 8px 32px rgba(28,28,28,.06),0 2px 8px rgba(28,28,28,.04);
+  --ease-quiet:cubic-bezier(.22,1,.36,1);
+  --ease-precise:cubic-bezier(.4,0,.2,1);
+  --ease-emphasis:cubic-bezier(.16,1,.3,1);
+  --r-sm:.75rem; --r-md:1.25rem; --r-lg:1.75rem; --r-xl:2.5rem;
+}
+[data-theme="dark"]{
+  --bg:#15130F; --bg-alt:#1E1B15; --cream:#252118;
+  --charcoal:#F3F0EB; --earth:#E8DFD0;
+  --text:#F3F0EB;
+  --text-muted:rgba(243,240,235,.62);
+  --text-faint:rgba(243,240,235,.38);
+  --line:rgba(243,240,235,.12);
+  --line-strong:rgba(243,240,235,.28);
+  --glass-bg:rgba(37,33,24,.55);
+  --glass-border:rgba(243,240,235,.08);
+  --glass-shadow:0 8px 32px rgba(0,0,0,.3),0 2px 8px rgba(0,0,0,.18);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Roboto',system-ui,sans-serif;font-weight:300;
+  background:var(--bg);color:var(--text);line-height:1.65;
+  min-height:100vh;overflow-x:hidden;
+  transition:background .6s var(--ease-quiet),color .6s var(--ease-quiet);
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 15% 20%,rgba(184,92,60,.10),transparent 45%),
+    radial-gradient(circle at 85% 75%,rgba(58,90,64,.10),transparent 45%),
+    radial-gradient(circle at 50% 100%,rgba(201,168,118,.08),transparent 55%);
+}
+[data-theme="dark"] body::before{
+  background:
+    radial-gradient(circle at 15% 20%,rgba(184,92,60,.14),transparent 45%),
+    radial-gradient(circle at 85% 75%,rgba(58,90,64,.12),transparent 45%);
+}
+img{display:block;max-width:100%}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+a{color:inherit;text-decoration:none}
+input{font-family:inherit}
+
+/* ============ Typography ============ */
+.eyebrow{
+  display:inline-flex;align-items:center;gap:.75rem;
+  font:400 11px/1 'Roboto',sans-serif;
+  letter-spacing:.32em;text-transform:uppercase;color:var(--accent);
+}
+.eyebrow::after{
+  content:'';display:inline-block;width:0;height:1px;background:currentColor;
+  transition:width .8s var(--ease-quiet) .4s;
+}
+.is-in .eyebrow::after{width:2.5rem}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+h1,h2,h3{font-family:'Oswald',sans-serif;font-weight:300;letter-spacing:-.01em;line-height:1.05}
+h1{font-size:clamp(2.8rem,7vw,5.5rem);font-weight:200}
+h2{font-size:clamp(2rem,4.5vw,3.5rem);font-weight:200}
+.italic{font-style:italic;color:var(--accent)}
+.mono{font-family:'JetBrains Mono',monospace;letter-spacing:-.02em}
+.lead{font-size:1.05rem;color:var(--text-muted);font-weight:300;line-height:1.7;max-width:48ch}
+
+.wrap{max-width:1400px;margin:0 auto;padding:0 2rem;position:relative;z-index:1}
+section{padding:5rem 0;position:relative;z-index:1}
+@media (max-width:768px){section{padding:3.5rem 0}}
+
+/* ============ Glass ============ */
+.glass{
+  background:var(--glass-bg);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r-lg);
+  box-shadow:var(--glass-shadow);
+}
+
+/* ============ Nav ============ */
+nav.top{
+  position:fixed;top:1.25rem;left:50%;transform:translateX(-50%);
+  z-index:100;width:calc(100% - 2rem);max-width:1400px;
+  padding:.85rem 1.25rem .85rem 1.5rem;
+  display:flex;align-items:center;gap:1.5rem;border-radius:var(--r-xl);
+}
+nav.top .brand{font:500 1rem/1 'Oswald';letter-spacing:.08em;display:flex;align-items:baseline;gap:.5rem}
+nav.top .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--forest);display:inline-block}
+nav.top .brand .sub{font:300 10px/1 'Roboto';letter-spacing:.3em;text-transform:uppercase;color:var(--text-faint)}
+nav.top .nav-back{
+  font:500 12px/1 'Roboto';letter-spacing:.18em;text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.6rem 1rem;border-radius:var(--r-sm);
+  background:rgba(28,28,28,.06);border:1px solid var(--line);
+  margin-left:auto;margin-right:.5rem;color:var(--text);
+  transition:all .3s var(--ease-quiet);
+}
+[data-theme="dark"] nav.top .nav-back{background:rgba(243,240,235,.06)}
+nav.top .nav-back:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+nav.top .nav-back svg{width:14px;height:14px}
+.theme-toggle{
+  width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(28,28,28,.06);border:1px solid var(--line);transition:all .4s var(--ease-quiet);
+}
+[data-theme="dark"] .theme-toggle{background:rgba(243,240,235,.06)}
+.theme-toggle:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:rotate(20deg)}
+.theme-toggle svg{width:18px;height:18px}
+.theme-toggle .sun{display:none}
+[data-theme="dark"] .theme-toggle .sun{display:block}
+[data-theme="dark"] .theme-toggle .moon{display:none}
+@media (max-width:540px){nav.top .brand .sub{display:none}}
+
+/* ============ Hero ============ */
+.hero{padding:8rem 0 3rem;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;z-index:0;overflow:hidden}
+.hero-bg img{width:100%;height:100%;object-fit:cover;opacity:.14;animation:kenburns 30s ease-in-out infinite alternate}
+[data-theme="dark"] .hero-bg img{opacity:.10}
+.hero-bg::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,var(--bg) 0%,transparent 25%,transparent 70%,var(--bg) 100%),
+             radial-gradient(ellipse at center,transparent 40%,var(--bg) 95%);
+}
+@keyframes kenburns{0%{transform:scale(1.05) translate(-1%,-1%)}100%{transform:scale(1.15) translate(1%,1%)}}
+.hero-inner{position:relative;z-index:2;max-width:1100px}
+.hero .eyebrow{margin-bottom:2rem}
+.hero h1{margin-bottom:1.5rem}
+.hero h1 .line2{display:block;font-style:italic;color:var(--accent)}
+.hero .lead{margin-bottom:0}
+
+.hero-anim > *{opacity:0;transform:translateY(40px);transition:opacity .9s var(--ease-quiet),transform .9s var(--ease-quiet)}
+.hero.is-in .hero-anim > *{opacity:1;transform:none}
+.hero.is-in .hero-anim > *:nth-child(1){transition-delay:.1s}
+.hero.is-in .hero-anim > *:nth-child(2){transition-delay:.3s}
+.hero.is-in .hero-anim > *:nth-child(3){transition-delay:.55s}
+
+/* ============ Section header ============ */
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:2rem;margin-bottom:3rem;flex-wrap:wrap}
+.sec-head .left{max-width:600px}
+.sec-head .eyebrow{margin-bottom:1.25rem}
+.sec-head h2{margin-bottom:0}
+.sec-head h2 .italic{font-style:italic}
+.sec-head .right{font:300 12px/1.6 'JetBrains Mono';color:var(--text-faint);text-align:right;max-width:32ch;white-space:pre-line}
+@media (max-width:768px){.sec-head .right{text-align:left}}
+
+.fade-up{opacity:0;transform:translateY(40px);transition:opacity 1s var(--ease-quiet),transform 1s var(--ease-quiet)}
+.is-in .fade-up,.fade-up.is-in{opacity:1;transform:none}
+
+/* ============ Stats strip ============ */
+.stats-strip{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:1.25rem;
+}
+@media (max-width:1024px){.stats-strip{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:540px){.stats-strip{grid-template-columns:repeat(2,1fr)}}
+.stat-box{
+  padding:1.5rem 1.5rem 1.25rem;border-radius:var(--r-md);
+  position:relative;overflow:hidden;
+  transition:transform .5s var(--ease-quiet),border-color .5s var(--ease-quiet);
+}
+.stat-box::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:2px;
+  background:var(--accent);transform:scaleX(0);transform-origin:left;
+  transition:transform .5s var(--ease-quiet);
+}
+.stat-box:hover{transform:translateY(-2px);border-color:var(--accent)}
+.stat-box:hover::before{transform:scaleX(1)}
+.stat-box .label{font:400 10px/1 'Roboto';letter-spacing:.28em;text-transform:uppercase;color:var(--text-faint);margin-bottom:.85rem;display:flex;align-items:center;gap:.5rem}
+.stat-box .label .ic{width:14px;height:14px;opacity:.6;flex-shrink:0}
+.stat-box .num{font:200 2.4rem/1 'Oswald';color:var(--text);display:flex;align-items:baseline;gap:.4rem}
+.stat-box .num .accent{color:var(--accent)}
+.stat-box .num .placeholder{color:var(--text-faint);font-size:1.4rem}
+.stat-box .num .small{font:300 .75rem 'Roboto';color:var(--text-faint);margin-left:.2rem}
+.stat-box .sub{font:300 11px/1.4 'JetBrains Mono';color:var(--text-muted);margin-top:.5rem}
+
+/* ============ Controls (sticky) ============ */
+.controls{
+  position:sticky;top:5.5rem;z-index:50;
+  padding:1rem 1.25rem;border-radius:var(--r-lg);
+  display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+  margin-bottom:2.5rem;
+}
+.controls .search{
+  flex:1;min-width:220px;display:flex;align-items:center;gap:.75rem;
+  padding:.7rem 1rem;border-radius:var(--r-sm);
+  background:rgba(28,28,28,.05);border:1px solid var(--line);
+  transition:border-color .3s var(--ease-quiet);
+}
+[data-theme="dark"] .controls .search{background:rgba(243,240,235,.05)}
+.controls .search:focus-within{border-color:var(--accent)}
+.controls .search svg{width:16px;height:16px;color:var(--text-faint);flex-shrink:0}
+.controls .search input{
+  flex:1;border:none;background:none;color:var(--text);
+  font:300 .95rem 'Roboto';outline:none;min-width:0;
+}
+.controls .search input::placeholder{color:var(--text-faint)}
+.controls .filters{display:flex;gap:.4rem;flex-wrap:wrap}
+.filter-btn{
+  padding:.55rem 1rem;border-radius:99px;
+  font:500 11px/1 'Roboto';letter-spacing:.16em;text-transform:uppercase;
+  border:1px solid var(--line);color:var(--text-muted);
+  transition:all .3s var(--ease-quiet);white-space:nowrap;
+}
+.filter-btn:hover{color:var(--text);border-color:var(--line-strong)}
+.filter-btn.active{background:var(--charcoal);color:var(--cream);border-color:var(--charcoal)}
+[data-theme="dark"] .filter-btn.active{background:var(--cream);color:var(--charcoal)}
+.filter-btn .cnt{font:400 10px/1 'JetBrains Mono';margin-left:.35rem;opacity:.6}
+.controls .count{font:300 12px/1 'JetBrains Mono';color:var(--text-faint);letter-spacing:.05em;white-space:nowrap}
+
+/* ============ Player grid ============ */
+.player-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;
+}
+@media (max-width:1024px){.player-grid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:768px){.player-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){.player-grid{grid-template-columns:1fr}}
+
+.player-card{
+  padding:1.1rem;border-radius:var(--r-md);
+  position:relative;overflow:hidden;cursor:pointer;
+  transition:transform .5s var(--ease-quiet),border-color .5s var(--ease-quiet);
+}
+.player-card::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:2px;
+  background:var(--accent);transform:scaleX(0);transform-origin:left;
+  transition:transform .5s var(--ease-quiet);
+}
+.player-card:hover{transform:translateY(-3px);border-color:var(--accent)}
+.player-card:hover::before{transform:scaleX(1)}
+.player-card.banned{border-color:rgba(184,92,60,.35)}
+.player-card.banned::before{background:var(--terracotta);transform:scaleX(1);opacity:.6}
+
+.player-card .avatar-frame{
+  position:relative;width:100%;aspect-ratio:1;
+  border-radius:var(--r-sm);overflow:hidden;
+  margin-bottom:.9rem;background:rgba(28,28,28,.05);
+  image-rendering:pixelated;
+}
+[data-theme="dark"] .player-card .avatar-frame{background:rgba(243,240,235,.05)}
+.player-card .avatar-frame img{
+  width:100%;height:100%;object-fit:cover;
+  filter:sepia(.06) saturate(.92);
+  transition:filter .5s var(--ease-quiet),transform .5s var(--ease-quiet);
+}
+.player-card:hover .avatar-frame img{filter:sepia(0) saturate(1);transform:scale(1.04)}
+.player-card .status-dot{
+  position:absolute;top:.55rem;right:.55rem;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--forest);box-shadow:0 0 8px var(--forest),0 0 0 3px var(--cream);
+}
+[data-theme="dark"] .player-card .status-dot{box-shadow:0 0 8px var(--forest),0 0 0 3px var(--cream)}
+.player-card.offline .status-dot{background:var(--text-faint);box-shadow:0 0 0 3px var(--cream)}
+[data-theme="dark"] .player-card.offline .status-dot{box-shadow:0 0 0 3px var(--cream)}
+.player-card .banned-badge{
+  position:absolute;top:.55rem;left:.55rem;
+  padding:.2rem .5rem;border-radius:99px;
+  background:rgba(184,92,60,.92);color:#fff;
+  font:500 9px/1 'Roboto';letter-spacing:.18em;text-transform:uppercase;
+}
+.player-card .name{
+  font:400 1rem/1.2 'Oswald';color:var(--text);
+  margin-bottom:.3rem;letter-spacing:.01em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.player-card .uuid{
+  font:300 10px/1.3 'JetBrains Mono';color:var(--text-faint);
+  word-break:break-all;margin-bottom:.75rem;
+}
+.player-card .meta{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+
+/* gamemode tag */
+.gm-tag{
+  display:inline-flex;align-items:center;gap:.3rem;
+  padding:.25rem .55rem;border-radius:99px;
+  font:500 9px/1 'Roboto';letter-spacing:.16em;text-transform:uppercase;
+  border:1px solid transparent;
+}
+.gm-tag.survival{background:rgba(58,90,64,.12);color:var(--forest);border-color:rgba(58,90,64,.25)}
+.gm-tag.creative{background:rgba(201,168,118,.15);color:var(--gold);border-color:rgba(201,168,118,.3)}
+.gm-tag.adventure{background:rgba(184,92,60,.12);color:var(--terracotta);border-color:rgba(184,92,60,.25)}
+.gm-tag.spectator{background:rgba(28,28,28,.08);color:var(--text-faint);border-color:var(--line)}
+[data-theme="dark"] .gm-tag.spectator{background:rgba(243,240,235,.08)}
+.gm-tag .dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* ping */
+.ping-tag{
+  display:inline-flex;align-items:center;gap:.3rem;
+  padding:.25rem .55rem;border-radius:99px;
+  font:400 9px/1 'JetBrains Mono';letter-spacing:.04em;
+  background:rgba(28,28,28,.05);color:var(--text-muted);
+}
+[data-theme="dark"] .ping-tag{background:rgba(243,240,235,.05)}
+.ping-tag.good{color:var(--forest);background:rgba(58,90,64,.1)}
+.ping-tag.ok{color:var(--gold);background:rgba(201,168,118,.12)}
+.ping-tag.bad{color:var(--terracotta);background:rgba(184,92,60,.12)}
+.ping-tag .bars{display:inline-flex;align-items:flex-end;gap:1px;height:9px}
+.ping-tag .bars span{width:2px;background:currentColor;border-radius:1px}
+.ping-tag .bars span:nth-child(1){height:4px}
+.ping-tag .bars span:nth-child(2){height:6px}
+.ping-tag .bars span:nth-child(3){height:9px}
+.ping-tag.good .bars span:nth-child(1),
+.ping-tag.good .bars span:nth-child(2),
+.ping-tag.good .bars span:nth-child(3){opacity:1}
+.ping-tag.ok .bars span:nth-child(3){opacity:.25}
+.ping-tag.bad .bars span:nth-child(2),
+.ping-tag.bad .bars span:nth-child(3){opacity:.25}
+
+/* sentinel + loadmore */
+.sentinel{height:1px;width:100%}
+.load-more{
+  margin:2.5rem auto 0;display:block;
+  padding:.9rem 2rem;border-radius:var(--r-md);
+  font:500 12px/1 'Roboto';letter-spacing:.2em;text-transform:uppercase;
+  border:1px solid var(--line-strong);color:var(--text);
+  transition:all .4s var(--ease-quiet);
+}
+.load-more:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.load-more:disabled{opacity:.5;cursor:wait}
+
+/* empty / loading */
+.state-block{
+  grid-column:1/-1;padding:5rem 2rem;text-align:center;border-radius:var(--r-lg);
+  border:1px dashed var(--line);
+}
+.state-block h3{font:300 1.5rem 'Oswald';margin-bottom:.5rem}
+.state-block p{color:var(--text-muted);font-size:.95rem}
+.state-block .spinner{
+  width:32px;height:32px;border:2px solid var(--line);border-top-color:var(--accent);
+  border-radius:50%;margin:0 auto 1.25rem;animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ============ Drawer ============ */
+.drawer-mask{
+  position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.4);
+  opacity:0;pointer-events:none;transition:opacity .4s var(--ease-quiet);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.drawer-mask.open{opacity:1;pointer-events:auto}
+.drawer{
+  position:fixed;top:0;right:0;bottom:0;z-index:160;
+  width:440px;max-width:100vw;
+  background:var(--bg);border-left:1px solid var(--line);
+  box-shadow:-12px 0 40px rgba(0,0,0,.15);
+  transform:translateX(100%);transition:transform .5s var(--ease-emphasis);
+  overflow-y:auto;display:flex;flex-direction:column;
+}
+.drawer.open{transform:translateX(0)}
+@media (max-width:540px){.drawer{width:100vw}}
+.drawer-head{
+  position:sticky;top:0;z-index:2;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:1.25rem 1.5rem;background:var(--bg);
+  border-bottom:1px solid var(--line);
+}
+.drawer-head .title{font:400 11px/1 'Roboto';letter-spacing:.28em;text-transform:uppercase;color:var(--text-faint)}
+.drawer-close{
+  width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(28,28,28,.05);border:1px solid var(--line);
+  transition:all .3s var(--ease-quiet);
+}
+[data-theme="dark"] .drawer-close{background:rgba(243,240,235,.05)}
+.drawer-close:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:rotate(90deg)}
+.drawer-close svg{width:16px;height:16px}
+.drawer-body{padding:1.5rem;flex:1}
+.drawer-avatar{
+  width:160px;height:160px;margin:0 auto 1.5rem;border-radius:var(--r-md);
+  overflow:hidden;background:rgba(28,28,28,.05);image-rendering:pixelated;
+  border:4px solid var(--cream);box-shadow:0 12px 32px rgba(28,28,28,.15);
+}
+[data-theme="dark"] .drawer-avatar{border-color:var(--cream);background:rgba(243,240,235,.05)}
+.drawer-avatar img{width:100%;height:100%;object-fit:cover}
+.drawer-name{font:300 1.8rem/1.1 'Oswald';color:var(--text);text-align:center;margin-bottom:.4rem;word-break:break-word}
+.drawer-uuid{
+  font:300 11px/1.4 'JetBrains Mono';color:var(--text-faint);text-align:center;
+  word-break:break-all;margin-bottom:1.5rem;
+}
+.drawer-copy{
+  display:flex;justify-content:center;margin-bottom:1.75rem;
+}
+.drawer-copy button{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.5rem .9rem;border-radius:var(--r-sm);
+  background:rgba(28,28,28,.06);border:1px solid var(--line);
+  font:400 11px/1 'Roboto';letter-spacing:.16em;text-transform:uppercase;
+  transition:all .3s var(--ease-quiet);
+}
+[data-theme="dark"] .drawer-copy button{background:rgba(243,240,235,.06)}
+.drawer-copy button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.drawer-copy button svg{width:12px;height:12px}
+.drawer-field{
+  display:flex;justify-content:space-between;align-items:center;gap:1rem;
+  padding:.85rem 0;border-bottom:1px solid var(--line);
+}
+.drawer-field .k{font:400 10px/1 'Roboto';letter-spacing:.22em;text-transform:uppercase;color:var(--text-faint);flex-shrink:0}
+.drawer-field .v{font:300 .95rem/1.4 'Roboto';color:var(--text);text-align:right;word-break:break-word}
+.drawer-field .v.mono{font-family:'JetBrains Mono',monospace;font-size:.85rem}
+.drawer-banreason{
+  margin-top:1.25rem;padding:1rem 1.25rem;border-radius:var(--r-sm);
+  background:rgba(184,92,60,.1);border:1px solid rgba(184,92,60,.25);
+}
+.drawer-banreason .k{font:500 10px/1 'Roboto';letter-spacing:.22em;text-transform:uppercase;color:var(--terracotta);margin-bottom:.5rem;display:block}
+.drawer-banreason .v{font:300 .9rem/1.5 'Roboto';color:var(--text);word-break:break-word}
+.drawer-loading{padding:3rem 0;text-align:center;color:var(--text-faint);font:300 12px 'JetBrains Mono'}
+
+/* ============ Footer ============ */
+footer{margin-top:6rem;padding:4rem 0 3rem;border-top:1px solid var(--line)}
+.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:3rem}
+@media (max-width:900px){.foot-grid{grid-template-columns:1fr 1fr;gap:2rem}}
+.foot-brand h3{font:200 2rem/1 'Oswald';margin-bottom:1rem}
+.foot-brand p{color:var(--text-muted);font-size:.9rem;max-width:32ch}
+.foot-col h4{font:500 11px/1 'Roboto';letter-spacing:.25em;text-transform:uppercase;color:var(--text-faint);margin-bottom:1.25rem}
+.foot-col a{display:block;font:300 .9rem/2 'Roboto';color:var(--text-muted);transition:color .3s var(--ease-quiet)}
+.foot-col a:hover{color:var(--accent)}
+.foot-col a .ext{font-size:.75rem;color:var(--text-faint);margin-left:.4rem}
+.foot-bottom{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-top:2rem;border-top:1px solid var(--line);
+  font:300 11px/1 'JetBrains Mono';color:var(--text-faint);
+  letter-spacing:.05em;flex-wrap:wrap;gap:1rem;
+}
+
+/* ============ Toast ============ */
+.toast{
+  position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(200%);
+  padding:.85rem 1.5rem;border-radius:99px;
+  background:var(--charcoal);color:var(--cream);
+  font:500 12px/1 'Roboto';letter-spacing:.18em;text-transform:uppercase;
+  z-index:200;transition:transform .5s var(--ease-emphasis);
+  box-shadow:0 8px 24px rgba(0,0,0,.2);
+}
+[data-theme="dark"] .toast{background:var(--cream);color:var(--charcoal)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+.api-err{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.25rem .6rem;border-radius:99px;
+  background:rgba(184,92,60,.12);color:var(--terracotta);
+  font:500 9px/1 'Roboto';letter-spacing:.2em;text-transform:uppercase;
+}
+.api-err .dot{width:5px;height:5px;border-radius:50%;background:var(--terracotta)}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition-duration:.01ms !important}
+  .hero-bg img{animation:none}
+  .fade-up,.hero-anim > *{opacity:1 !important;transform:none !important}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Nav ===== -->
+<nav class="top glass">
+  <div class="brand">
+    <span class="dot"></span>
+    Wtcraft
+    <span class="sub">EST. 2025.08.04</span>
+  </div>
+  <a href="index.html" class="nav-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    返回主页
+  </a>
+  <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+    <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+  </button>
+</nav>
+
+<!-- ===== Hero ===== -->
+<header class="hero" id="hero">
+  <div class="hero-bg">
+    <img src="https://api.yppp.net/api.php" alt="">
+  </div>
+  <div class="wrap">
+    <div class="hero-inner hero-anim">
+      <div class="eyebrow"><span class="dot"></span>PLAYER ARCHIVE · 全服档案</div>
+      <h1>玩家<span class="line2">档案册</span></h1>
+      <p class="lead">每一位曾在这片世界留下脚印的玩家，对在这里！点击头像查看完整档案——在线状态、游戏模式、实时延迟、封禁记录！</p>
+    </div>
+  </div>
+</header>
+
+<!-- ===== Stats ===== -->
+<section style="padding:0 0 3rem">
+  <div class="wrap">
+    <div class="stats-strip fade-up" id="statsStrip">
+      <div class="stat-box glass">
+        <div class="label">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          总玩家数
+        </div>
+        <div class="num" id="stTotal"><span class="placeholder">—</span></div>
+        <div class="sub">all-time unique</div>
+      </div>
+      <div class="stat-box glass">
+        <div class="label">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+          在线
+        </div>
+        <div class="num" id="stOnline"><span class="placeholder">—</span></div>
+        <div class="sub">real-time</div>
+      </div>
+      <div class="stat-box glass">
+        <div class="label">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          离线
+        </div>
+        <div class="num" id="stOffline"><span class="placeholder">—</span></div>
+        <div class="sub">offline players</div>
+      </div>
+      <div class="stat-box glass">
+        <div class="label">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          封禁
+        </div>
+        <div class="num" id="stBanned"><span class="placeholder">—</span></div>
+        <div class="sub">banned players</div>
+      </div>
+      <div class="stat-box glass">
+        <div class="label">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+          今日峰值
+        </div>
+        <div class="num" id="stPeak"><span class="placeholder">—</span></div>
+        <div class="sub">peak today</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Player archive ===== -->
+<section id="archive" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head fade-up">
+      <div class="left">
+        <div class="eyebrow"><span class="dot"></span>SECTION · 玩家档案</div>
+        <h2>全服<span class="italic">玩家名册</span></h2>
+      </div>
+      <div class="right">awa</div>
+    </div>
+
+    <div class="controls glass fade-up">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="搜索玩家名 / UUID…">
+      </div>
+      <div class="filters" id="filters">
+        <button class="filter-btn active" data-filter="all">全部<span class="cnt" id="cntAll">0</span></button>
+        <button class="filter-btn" data-filter="online">在线<span class="cnt" id="cntOnline">0</span></button>
+        <button class="filter-btn" data-filter="offline">离线<span class="cnt" id="cntOffline">0</span></button>
+        <button class="filter-btn" data-filter="banned">封禁<span class="cnt" id="cntBanned">0</span></button>
+      </div>
+      <div class="count" id="count">显示 0 / 0</div>
+    </div>
+
+    <div class="player-grid" id="playerGrid">
+      <div class="state-block" id="initialState">
+        <div class="spinner"></div>
+        <h3>正在拉取玩家档案…</h3>
+        <p>首次加载可能需要数秒</p>
+      </div>
+    </div>
+    <div class="sentinel" id="sentinel"></div>
+    <button class="load-more" id="loadMore" style="display:none">加载更多</button>
+  </div>
+</section>
+
+<!-- ===== Drawer ===== -->
+<div class="drawer-mask" id="drawerMask"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <span class="title">玩家详情</span>
+    <button class="drawer-close" id="drawerClose" aria-label="关闭">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <div class="drawer-loading">正在加载…</div>
+  </div>
+</aside>
+
+<!-- ===== Footer ===== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <h3>Wtcraft</h3>
+        <p>一个从 2025 年 8 月延续至今的 Minecraft 长期生存服。纯公益服务器，你的鼓励与赞助就是我们前进最大的动力ヾ(≧▽≦*)o</p>
+      </div>
+      <div class="foot-col">
+        <h4>导航</h4>
+        <a href="#">顶部</a>
+      </div>
+      <div class="foot-col">
+        <h4>链接</h4>
+        <a href="https://www.mclists.cn/server/9609.html" target="_blank" rel="noopener">WTC小游戏服务器<span class="ext">↗</span></a>
+        <a href="https://shirokoabds.github.io/wtcwiki" target="_blank" rel="noopener">WIKI<span class="ext">↗</span></a>
+        <a href="https://qm.qq.com/q/QiIi4X5xwQ" target="_blank" rel="noopener">QQ 群 · 610445505<span class="ext">↗</span></a>
+        <a href="https://pd.qq.com/s/2tworcukl" >QQ频道<span class="ext">↗</span></a>
+      </div>
+      <div class="foot-col">
+        <h4>更多</h4>
+        <a href="https://ifdian.net/p/0164034c016c11ebafcb52540025c377">PCL<span class="ext">↗</span></a>
+        <a href="news.html">公告（停止维护）<span class="ext">↗</span></a>
+        <a href="https://www.minecraft.net/zh-hans">Minecraft<span class="ext">↗</span></a>
+        <a href="https://qm.qq.com/q/bYwH73z80E">黎明初露-友服<span class="ext">↗</span></a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <div>© 2025–present Wtcraft · Minecraft is a trademark of Mojang Studios</div>
+      <div>avatar by mc-heads.net · archive v3.5.0</div>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast">已复制到剪贴板</div>
+
+<script>
+/* ============================================================
+ *  Wtcraft · 玩家档案册
+ *  数据 API:
+ *    LIST   = http://160.202.254.29:10158/open-api/players
+ *    DETAIL = http://160.202.254.29:10158/open-api/players/{uuid}
+ *  头像 API:
+ *    MCHEADS = https://api.mcheads.org/head/{name}/{size}  → PNG
+ *    失败回退 → 纯前端字母头像（零依赖）
+ *
+ *  限速策略（玩家非常多）：
+ *    1. 所有卡片默认字母头像（即时显示，零请求）
+ *    2. 在线玩家入并发队列（最多 8 个在途）
+ *    3. 离线玩家 IntersectionObserver 进视口才入队
+ *    4. img onerror 回退字母头像
+ *    5. mcheads.org 自带 1h 服务端缓存 + 浏览器 HTTP 缓存
+ * ============================================================ */
+
+const API_BASE    = 'http://160.202.254.29:10158';
+const PLAYERS_API = API_BASE + '/open-api/players';
+const DETAIL_API  = (uuid) => API_BASE + '/open-api/players/' + encodeURIComponent(uuid);
+
+/* ===== mcheads.org 头像 ===== */
+const MCHEADS_BASE = 'https://api.mcheads.org';
+function mcheadsUrl(name, size) {
+  if (!name) return '';
+  return `${MCHEADS_BASE}/head/${encodeURIComponent(name)}/${size}`;
+}
+
+/* ===== 纯前端字母头像（兜底，零网络请求） ===== */
+function getGeneratedAvatar(name, size) {
+  const safeName = name && name.length > 0 ? name : 'Player';
+  const initial = safeName.charAt(0).toUpperCase();
+  let hash = 0;
+  for (let i = 0; i < safeName.length; i++) {
+    hash = safeName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash) % 360;
+  const bgColor = `hsl(${hue}, 28%, 45%)`;
+  const textColor = `hsl(${hue}, 15%, 92%)`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="${bgColor}"/><text x="50%" y="50%" dy=".35em" fill="${textColor}" font-family="Oswald, sans-serif" font-size="${size * 0.45}" font-weight="300" text-anchor="middle" dominant-baseline="middle">${initial}</text></svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+/* ===== 头像请求队列（并发限流，防限速） ===== */
+const MAX_CONCURRENT = 8;          // 同时最多 8 个在途请求
+let activeCount = 0;
+const avatarQueue = [];
+
+function requestAvatar(img, url, fallbackUrl) {
+  avatarQueue.push({ img, url, fallbackUrl });
+  pumpAvatarQueue();
+}
+
+function pumpAvatarQueue() {
+  while (activeCount < MAX_CONCURRENT && avatarQueue.length > 0) {
+    const { img, url, fallbackUrl } = avatarQueue.shift();
+    activeCount++;
+
+    const onSettled = () => {
+      activeCount--;
+      pumpAvatarQueue();
+    };
+
+    // 先绑事件再设 src（避免时序问题）
+    img.addEventListener('load', onSettled, { once: true });
+    img.addEventListener('error', function onError() {
+      img.removeEventListener('error', onError);
+      img.src = fallbackUrl;   // 回退字母头像
+      onSettled();
+    }, { once: true });
+
+    img.src = url;
+  }
+}
+
+const BATCH_SIZE = 60;
+
+/* ===== 主题 ===== */
+const root = document.documentElement;
+const stored = localStorage.getItem('wt-theme');
+if (stored) root.setAttribute('data-theme', stored);
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('wt-theme', next);
+});
+
+/* ===== Toast ===== */
+const toast = document.getElementById('toast');
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+function copyText(text, label) {
+  const msg = label ? `已复制 · ${label}` : '已复制到剪贴板';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast(msg));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); showToast(msg); } catch(e) {}
+    document.body.removeChild(ta);
+  }
+}
+
+/* ===== IntersectionObserver fade-up ===== */
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('is-in'); });
+}, { threshold: 0.12, rootMargin: '0px 0px -10% 0px' });
+document.querySelectorAll('.fade-up, .hero, section').forEach(el => io.observe(el));
+
+/* ===== 头像懒加载 Observer（离线玩家进入视口才入队） ===== */
+const avatarObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const img = entry.target;
+    if (img.dataset.queued === '1') return;
+    img.dataset.queued = '1';
+
+    const name = img.dataset.name;
+    const size = parseInt(img.dataset.size || '160', 10);
+    if (!name) {
+      img.src = getGeneratedAvatar(name, size);
+      return;
+    }
+    const url = mcheadsUrl(name, size);
+    const fallback = getGeneratedAvatar(name, size);
+    requestAvatar(img, url, fallback);
+    avatarObserver.unobserve(img);
+  });
+}, { rootMargin: '200px' });
+
+/* ===== 工具函数 ===== */
+const GM_LABEL = { survival:'SURVIVAL', creative:'CREATIVE', adventure:'ADVENTURE', spectator:'SPECTATOR' };
+
+function pingClass(ping) {
+  if (ping == null) return 'ping-tag';
+  if (ping < 100) return 'ping-tag good';
+  if (ping < 200) return 'ping-tag ok';
+  return 'ping-tag bad';
+}
+
+function shortUuid(uuid) {
+  if (!uuid) return '—';
+  return uuid.length > 20 ? uuid.slice(0, 8) + '…' + uuid.slice(-8) : uuid;
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ===== 状态 ===== */
+let allPlayers = [];
+let filteredPlayers = [];
+let displayedCount = 0;
+let currentFilter = 'all';
+let searchQuery = '';
+let loaded = false;
+
+const grid = document.getElementById('playerGrid');
+
+/* ===== fetch 全量玩家 ===== */
+async function fetchPlayers() {
+  try {
+    const res = await fetch(PLAYERS_API, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    allPlayers = Array.isArray(data.players) ? data.players : [];
+
+    allPlayers.sort((a, b) => {
+      if (!!b.isOnline - !!a.isOnline) return !!b.isOnline - !!a.isOnline ? 1 : -1;
+      return (a.name || '').toLowerCase().localeCompare((b.name || '').toLowerCase());
+    });
+
+    renderStats();
+    renderFilterCounts();
+
+    if (!loaded) {
+      loaded = true;
+      grid.innerHTML = '';
+      applyFilter();
+    } else {
+      refreshRenderedCards();
+    }
+    return true;
+  } catch (err) {
+    console.warn('[players] fetch failed:', err.message);
+    if (!loaded) {
+      grid.innerHTML = `<div class="state-block">
+        <h3>无法连接玩家 API</h3>
+        <p>fetch /open-api/players 失败 · ${escapeHtml(err.message)}</p>
+      </div>`;
+    }
+    return false;
+  }
+}
+
+/* ===== 统计 ===== */
+function renderStats() {
+  const total = allPlayers.length;
+  const online = allPlayers.filter(p => p.isOnline).length;
+  const offline = allPlayers.filter(p => !p.isOnline).length;
+  const banned = allPlayers.filter(p => p.isBanned).length;
+
+  setHTML('stTotal', total > 0 ? total : '<span class="placeholder">—</span>');
+  setHTML('stOnline', online > 0 ? `<span class="accent">${online}</span>` : '<span class="placeholder">0</span>');
+  setHTML('stOffline', offline > 0 ? offline : '<span class="placeholder">—</span>');
+  setHTML('stBanned', banned > 0 ? `<span class="accent">${banned}</span>` : '<span class="placeholder">0</span>');
+
+  const today = new Date().toISOString().slice(0, 10);
+  const key = 'wt-peak-' + today;
+  let peak = parseInt(localStorage.getItem(key) || '0', 10);
+  if (online > peak) { peak = online; localStorage.setItem(key, String(peak)); }
+  setHTML('stPeak', peak > 0 ? peak : '<span class="placeholder">—</span>');
+}
+
+function renderFilterCounts() {
+  const total = allPlayers.length;
+  const online = allPlayers.filter(p => p.isOnline).length;
+  const offline = total - online;
+  const banned = allPlayers.filter(p => p.isBanned).length;
+  setText('cntAll', total);
+  setText('cntOnline', online);
+  setText('cntOffline', offline);
+  setText('cntBanned', banned);
+}
+
+/* ===== 过滤 + 搜索 ===== */
+function getFiltered() {
+  let arr = allPlayers;
+  if (currentFilter === 'online') arr = arr.filter(p => p.isOnline);
+  else if (currentFilter === 'offline') arr = arr.filter(p => !p.isOnline);
+  else if (currentFilter === 'banned') arr = arr.filter(p => p.isBanned);
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    arr = arr.filter(p =>
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.uuid && p.uuid.toLowerCase().includes(q))
+    );
+  }
+  return arr;
+}
+
+function applyFilter() {
+  filteredPlayers = getFiltered();
+  displayedCount = 0;
+  grid.innerHTML = '';
+  if (filteredPlayers.length === 0) {
+    grid.innerHTML = `<div class="state-block">
+      <h3>没有匹配的玩家</h3>
+      <p>试试其他关键词或切换过滤器</p>
+    </div>`;
+    document.getElementById('count').textContent = `0 / 0`;
+    document.getElementById('loadMore').style.display = 'none';
+    return;
+  }
+  renderBatch();
+}
+
+/* ===== 分批渲染 ===== */
+function renderBatch() {
+  if (displayedCount >= filteredPlayers.length) {
+    document.getElementById('loadMore').style.display = 'none';
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  const end = Math.min(displayedCount + BATCH_SIZE, filteredPlayers.length);
+  for (let i = displayedCount; i < end; i++) {
+    frag.appendChild(buildCard(filteredPlayers[i]));
+  }
+  const state = grid.querySelector('.state-block');
+  if (state) grid.innerHTML = '';
+  grid.appendChild(frag);
+  displayedCount = end;
+
+  document.getElementById('count').textContent = `显示 ${displayedCount} / ${filteredPlayers.length}`;
+  document.getElementById('loadMore').style.display =
+    displayedCount >= filteredPlayers.length ? 'none' : 'block';
+}
+
+function buildCard(p) {
+  const card = document.createElement('div');
+  const banned = !!p.isBanned;
+  const online = !!p.isOnline;
+  card.className = 'player-card glass' + (online ? '' : ' offline') + (banned ? ' banned' : '');
+  card.dataset.uuid = p.uuid || '';
+  card.dataset.name = p.name || '';
+
+  const gm = p.gamemode || 'survival';
+  const gmLabel = GM_LABEL[gm] || gm.toUpperCase();
+  const ping = p.ping;
+
+  let pingHtml = '';
+  if (online && ping != null) {
+    const cls = pingClass(ping);
+    pingHtml = `<span class="${cls}">
+      <span class="bars"><span></span><span></span><span></span></span>${Math.round(ping)}ms
+    </span>`;
+  }
+
+  // 默认字母头像（即时显示，零请求）
+  const defaultAvatar = getGeneratedAvatar(p.name, 160);
+
+  card.innerHTML = `
+    <div class="avatar-frame">
+      <img src="${defaultAvatar}"
+           data-name="${escapeHtml(p.name||'')}"
+           data-size="160"
+           data-queued="0"
+           alt="">
+      <span class="status-dot"></span>
+      ${banned ? '<span class="banned-badge">BANNED</span>' : ''}
+    </div>
+    <div class="name">${escapeHtml(p.name || '未知玩家')}</div>
+    <div class="uuid mono">${escapeHtml(shortUuid(p.uuid))}</div>
+    <div class="meta">
+      <span class="gm-tag ${gm}"><span class="dot"></span>${gmLabel}</span>
+      ${pingHtml}
+    </div>
+  `;
+
+  // 头像加载策略：
+  // 在线玩家 → 立即入并发队列（优先加载，数量少）
+  // 离线玩家 → IntersectionObserver 进视口才入队（懒加载）
+  const img = card.querySelector('.avatar-frame img');
+  const name = p.name;
+  if (name) {
+    const url = mcheadsUrl(name, 160);
+    const fallback = getGeneratedAvatar(name, 160);
+    if (online) {
+      img.dataset.queued = '1';
+      requestAvatar(img, url, fallback);
+    } else {
+      avatarObserver.observe(img);
+    }
+  }
+
+  card.addEventListener('click', () => openDrawer(p));
+  return card;
+}
+
+/* ===== 哨兵触底加载 ===== */
+const sentinel = document.getElementById('sentinel');
+const sentinelIO = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting && loaded && displayedCount < filteredPlayers.length) {
+    renderBatch();
+  }
+}, { rootMargin: '300px' });
+sentinelIO.observe(sentinel);
+
+document.getElementById('loadMore').addEventListener('click', renderBatch);
+
+/* ===== 轮询时刷新已渲染卡片 ===== */
+function refreshRenderedCards() {
+  filteredPlayers = getFiltered();
+  if (displayedCount > filteredPlayers.length) {
+    displayedCount = filteredPlayers.length;
+    const cards = grid.querySelectorAll('.player-card');
+    const excess = cards.length - filteredPlayers.length;
+    for (let i = 0; i < excess; i++) cards[cards.length - 1 - i].remove();
+  }
+  const map = new Map(filteredPlayers.slice(0, displayedCount).map(p => [p.uuid, p]));
+  grid.querySelectorAll('.player-card').forEach(card => {
+    const p = map.get(card.dataset.uuid);
+    if (!p) return;
+    const wasOnline = !card.classList.contains('offline');
+    if (!!p.isOnline !== wasOnline) {
+      card.classList.toggle('offline', !p.isOnline);
+    }
+    const meta = card.querySelector('.meta');
+    if (meta) {
+      const oldPing = meta.querySelector('.ping-tag');
+      if (p.isOnline && p.ping != null) {
+        const cls = pingClass(p.ping);
+        const newHtml = `<span class="${cls}"><span class="bars"><span></span><span></span><span></span></span>${Math.round(p.ping)}ms</span>`;
+        if (oldPing) {
+          oldPing.outerHTML = newHtml;
+        } else {
+          meta.insertAdjacentHTML('beforeend', newHtml);
+        }
+      } else if (oldPing) {
+        oldPing.remove();
+      }
+    }
+  });
+  document.getElementById('count').textContent = `显示 ${displayedCount} / ${filteredPlayers.length}`;
+}
+
+/* ===== 搜索 / 过滤 ===== */
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    applyFilter();
+  });
+});
+
+let searchTimer;
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchQuery = e.target.value.trim();
+    applyFilter();
+  }, 250);
+});
+
+/* ===== 详情抽屉 ===== */
+const drawer = document.getElementById('drawer');
+const drawerMask = document.getElementById('drawerMask');
+const drawerBody = document.getElementById('drawerBody');
+
+function openDrawer(p) {
+  drawerBody.innerHTML = buildDrawerHtml(p);
+  drawer.classList.add('open');
+  drawerMask.classList.add('open');
+  drawer.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  fetchDetail(p.uuid).then(detail => {
+    if (detail) {
+      drawerBody.innerHTML = buildDrawerHtml(detail);
+    }
+  }).catch(() => {});
+}
+
+function closeDrawer() {
+  drawer.classList.remove('open');
+  drawerMask.classList.remove('open');
+  drawer.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+async function fetchDetail(uuid) {
+  if (!uuid) return null;
+  try {
+    const res = await fetch(DETAIL_API(uuid), { cache: 'no-store' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    return null;
+  }
+}
+
+function buildDrawerHtml(p) {
+  const online = !!p.isOnline;
+  const banned = !!p.isBanned;
+  const gm = p.gamemode || 'survival';
+  const gmLabel = GM_LABEL[gm] || gm.toUpperCase();
+  const ping = p.ping;
+
+  const statusHtml = banned
+    ? `<span class="api-err"><span class="dot"></span>已封禁</span>`
+    : online
+      ? `<span class="gm-tag survival"><span class="dot"></span>在线</span>`
+      : `<span class="gm-tag spectator"><span class="dot"></span>离线</span>`;
+
+  let pingField = '';
+  if (online && ping != null) {
+    const cls = pingClass(ping);
+    pingField = `<div class="drawer-field">
+      <span class="k">实时延迟</span>
+      <span class="v"><span class="${cls}"><span class="bars"><span></span><span></span><span></span></span>${Math.round(ping)}ms</span></span>
+    </div>`;
+  } else if (online) {
+    pingField = `<div class="drawer-field">
+      <span class="k">实时延迟</span>
+      <span class="v" style="color:var(--text-faint)">—</span>
+    </div>`;
+  }
+
+  let banHtml = '';
+  if (banned && p.banReason) {
+    banHtml = `<div class="drawer-banreason">
+      <span class="k">封禁原因</span>
+      <span class="v">${escapeHtml(p.banReason)}</span>
+    </div>`;
+  }
+
+  // 抽屉大头像：直接请求 mcheads，失败回退字母头像
+  const name = p.name;
+  const drawerAvatar = name
+    ? `<img src="${mcheadsUrl(name, 200)}"
+           data-name="${escapeHtml(name)}"
+           data-size="200"
+           alt=""
+           onerror="this.onerror=null;this.src='${getGeneratedAvatar(name, 200).replace(/'/g, "\\'")}';">`
+    : `<img src="${getGeneratedAvatar(p.name, 200)}" alt="">`;
+
+  return `
+    <div class="drawer-avatar">
+      ${drawerAvatar}
+    </div>
+    <div class="drawer-name">${escapeHtml(p.name || '未知玩家')}</div>
+    <div class="drawer-uuid mono">${escapeHtml(p.uuid || '—')}</div>
+    <div class="drawer-copy">
+      <button id="drawerCopyUuid">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        复制 UUID
+      </button>
+    </div>
+    <div class="drawer-field">
+      <span class="k">状态</span>
+      <span class="v">${statusHtml}</span>
+    </div>
+    <div class="drawer-field">
+      <span class="k">游戏模式</span>
+      <span class="v"><span class="gm-tag ${gm}"><span class="dot"></span>${gmLabel}</span></span>
+    </div>
+    ${pingField}
+    <div class="drawer-field">
+      <span class="k">UUID</span>
+      <span class="v mono">${escapeHtml(p.uuid || '—')}</span>
+    </div>
+    ${banHtml}
+  `;
+}
+
+drawerBody.addEventListener('click', (e) => {
+  const btn = e.target.closest('#drawerCopyUuid');
+  if (btn) {
+    const uuidEl = drawerBody.querySelector('.drawer-uuid');
+    if (uuidEl) copyText(uuidEl.textContent.trim(), 'UUID');
+  }
+});
+
+document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+drawerMask.addEventListener('click', closeDrawer);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
+});
+
+/* ===== 工具 ===== */
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text == null ? '—' : String(text);
+}
+function setHTML(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+
+/* ===== 启动 ===== */
+fetchPlayers();
+setInterval(fetchPlayers, 60000);
+
+/* ============================================================
+ *  反代方案（若服务器 API 端无法开启 CORS）
+ *  nginx:
+ *  location /api/players          { proxy_pass http://160.202.254.29:10158/open-api/players; }
+ *  location ~ ^/api/players/(.+)$ { proxy_pass http://160.202.254.29:10158/open-api/players/$1; }
+ *  然后改常量：
+ *    const PLAYERS_API = '/api/players';
+ *    const DETAIL_API = (uuid) => '/api/players/' + encodeURIComponent(uuid);
+ *
+ *  mcheads.org 是 HTTPS + CORS 开放，无需反代，浏览器直连即可。
+ * ============================================================ */
+</script>
+
+
+
+</body>
+</html>
